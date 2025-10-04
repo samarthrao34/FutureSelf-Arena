@@ -191,6 +191,18 @@ export default function Home() {
     );
   }
 
+  const userContext = {
+      totalXp,
+      level,
+      skills: skills.map(s => ({name: s.name, level: s.level, xp: s.xp, xpToNextLevel: s.xpToNextLevel})),
+      quests: {
+          completed: quests.filter(q => q.completed).map(q => q.title),
+          remaining: quests.filter(q => !q.completed).map(q => q.title)
+      },
+      lifeMonitor: localAnalyticsData.lifeMonitor,
+  };
+
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <Header />
@@ -203,7 +215,7 @@ export default function Home() {
             xpToNextLevel={xpToNextLevel}
           />
           <SkillsTracker skills={skills} />
-          <MentorPanel />
+          <MentorPanel userContext={userContext} />
         </div>
         <div className="lg:col-span-2 flex flex-col gap-6">
           <QuestBoard 

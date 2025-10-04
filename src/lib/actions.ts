@@ -35,12 +35,14 @@ export async function generateQuestsAction(prevState: any, formData: FormData) {
 const mentorSchema = z.object({
     status: z.string().min(3, 'Status must be at least 3 characters long.'),
     mode: z.enum(['Sensei', 'Brother', 'Narrator', 'Futurist']),
+    context: z.string(),
 });
 
 export async function getMentorAdviceAction(prevState: any, formData: FormData) {
     const validatedFields = mentorSchema.safeParse({
         status: formData.get('status'),
         mode: formData.get('mode'),
+        context: formData.get('context'),
     });
 
     if (!validatedFields.success) {
@@ -53,6 +55,7 @@ export async function getMentorAdviceAction(prevState: any, formData: FormData) 
         const output = await adaptiveAiMentor({
             currentUserStatus: validatedFields.data.status,
             mode: validatedFields.data.mode,
+            context: validatedFields.data.context,
         });
         return { data: output };
     } catch (e) {

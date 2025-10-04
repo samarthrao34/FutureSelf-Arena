@@ -15,8 +15,13 @@ import {z} from 'genkit';
 import wav from 'wav';
 
 const AdaptiveAiMentorInputSchema = z.object({
-  currentUserStatus: z.string().describe('The current status of the user, including their current tasks, mood, and stress level.'),
+  currentUserStatus: z
+    .string()
+    .describe(
+      'The current status of the user, including their current tasks, mood, and stress level.'
+    ),
   mode: z.enum(['Sensei', 'Brother', 'Narrator', 'Futurist']).default('Sensei').describe('The mode of the Future Self mentor.'),
+  context: z.string().describe('JSON string containing user\'s current stats, goals, and progress.'),
 });
 export type AdaptiveAiMentorInput = z.infer<typeof AdaptiveAiMentorInputSchema>;
 
@@ -33,10 +38,14 @@ export async function adaptiveAiMentor(input: AdaptiveAiMentorInput): Promise<Ad
 const adaptiveAiMentorPrompt = ai.definePrompt({
   name: 'adaptiveAiMentorPrompt',
   input: {schema: AdaptiveAiMentorInputSchema},
-  output: {schema: AdaptiveAiMentorOutputSchema},
+  output: {schema: z.object({advice: z.string()})},
   prompt: `You are the user's Future Self, a Top 1% achiever, providing personalized guidance and motivation.
   Your current mode is: {{{mode}}}.
-  Based on the user's current status: {{{currentUserStatus}}}, provide advice and motivation.
+  
+  Here is the user's current context, in JSON format:
+  {{{context}}}
+
+  Based on the user's current status: {{{currentUserStatus}}}, and their context, provide advice and motivation. Keep your advice concise and actionable.
 
   Here are examples of your tone:
   Sensei: ["Discipline is everything. Focus now, reap later.", "No excuses, no delays. Attack the task like a warrior."]

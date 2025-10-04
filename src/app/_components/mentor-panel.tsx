@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, User, Sparkles, Volume2 } from 'lucide-react';
+import { Loader2, User, Volume2 } from 'lucide-react';
 import { SparkleIcon } from '@/components/icons/sparkle-icon';
 
 function SubmitButton() {
@@ -38,7 +38,11 @@ function SubmitButton() {
   );
 }
 
-export default function MentorPanel() {
+type MentorPanelProps = {
+    userContext: any;
+}
+
+export default function MentorPanel({ userContext }: MentorPanelProps) {
   const [state, formAction] = useActionState(getMentorAdviceAction, { data: undefined, error: undefined });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -60,6 +64,7 @@ export default function MentorPanel() {
       </CardHeader>
       <form action={formAction}>
         <CardContent className="space-y-4">
+          <input type="hidden" name="context" value={JSON.stringify(userContext)} />
           <div className="space-y-2">
             <label htmlFor="mode" className="text-sm font-medium">Mentor Mode</label>
             <Select name="mode" defaultValue="Sensei">
