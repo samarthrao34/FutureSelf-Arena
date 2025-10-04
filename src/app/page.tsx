@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './_components/header';
 import ProfileCard from './_components/profile-card';
 import QuestBoard from './_components/quest-board';
@@ -23,6 +23,37 @@ export default function Home() {
   const [skills, setSkills] = useState<Skill[]>(initialSkillsData);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [localAnalyticsData, setLocalAnalyticsData] = useState(analyticsData);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const storedQuests = localStorage.getItem('quests');
+      const storedTotalXp = localStorage.getItem('totalXp');
+      const storedSkills = localStorage.getItem('skills');
+      const storedAnalytics = localStorage.getItem('analyticsData');
+  
+      if (storedQuests) setQuests(JSON.parse(storedQuests));
+      if (storedTotalXp) setTotalXp(JSON.parse(storedTotalXp));
+      if (storedSkills) setSkills(JSON.parse(storedSkills));
+      if (storedAnalytics) setLocalAnalyticsData(JSON.parse(storedAnalytics));
+    } catch (error) {
+        console.error("Failed to parse from local storage", error);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+        localStorage.setItem('quests', JSON.stringify(quests));
+        localStorage.setItem('totalXp', JSON.stringify(totalXp));
+        localStorage.setItem('skills', JSON.stringify(skills));
+        localStorage.setItem('analyticsData', JSON.stringify(localAnalyticsData));
+    } catch (error) {
+        console.error("Failed to save to local storage", error);
+    }
+  }, [quests, totalXp, skills, localAnalyticsData, isLoaded]);
+
 
   const handleUpdateQuest = (updatedQuest: Quest) => {
     const questIndex = quests.findIndex(q => q.id === updatedQuest.id);
@@ -56,15 +87,22 @@ export default function Home() {
       setSkills(updatedSkills);
       
       // Update analytics
-      setLocalAnalyticsData(prev => ({
+      setLocalAnalyticsData(prev => {
+        const today = new Date().toLocaleDateString();
+        const existingEntryIndex = prev.xpOverTime.findIndex(e => e.date === today);
+        let newXpOverTime;
+        if (existingEntryIndex > -1) {
+            newXpOverTime = [...prev.xpOverTime];
+            newXpOverTime[existingEntryIndex] = {...newXpOverTime[existingEntryIndex], XP: newTotalXp };
+        } else {
+            newXpOverTime = [...prev.xpOverTime, { date: today, XP: newTotalXp }]
+        }
+        
+        return {
         ...prev,
-        xpOverTime: [...prev.xpOverTime, { date: new Date().toLocaleDateString(), XP: newTotalXp }],
+        xpOverTime: newXpOverTime,
         lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: (s.xp / s.xpToNextLevel) * 100, fullMark: 100})),
-        failureSuccess: [
-            {...prev.failureSuccess[0]},
-            {...prev.failureSuccess[1], value: prev.failureSuccess[1].value + 1}
-        ]
-      }));
+      }});
 
     } else if (!updatedQuest.completed && oldQuest.completed) {
         // If quest is un-completed, remove XP
@@ -78,6 +116,25 @@ export default function Home() {
             return {...skill, xp: newSkillXp < 0 ? 0 : Math.round(newSkillXp)};
         })
         setSkills(updatedSkills);
+
+        // Update analytics
+        setLocalAnalyticsData(prev => {
+            const today = new Date().toLocaleDateString();
+            const existingEntryIndex = prev.xpOverTime.findIndex(e => e.date === today);
+            let newXpOverTime;
+            if (existingEntryIndex > -1) {
+                newXpOverTime = [...prev.xpOverTime];
+                newXpOverTime[existingEntryIndex] = {...newXpOverTime[existingEntryIndex], XP: newTotalXp };
+            } else {
+                newXpOverTime = [...prev.xpOverTime, { date: today, XP: newTotalXp }]
+            }
+
+            return {
+                ...prev,
+                xpOverTime: newXpOverTime,
+                lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: (s.xp / s.xpToNextLevel) * 100, fullMark: 100})),
+            }
+        });
     }
   };
 
@@ -92,6 +149,10 @@ export default function Home() {
   const level = Math.floor(totalXp / 1000) + 1;
   const currentLevelXP = totalXp % 1000;
   const xpToNextLevel = 1000;
+
+  if (!isLoaded) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
