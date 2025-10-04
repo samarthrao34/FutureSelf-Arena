@@ -8,7 +8,6 @@ import SkillsTracker from './_components/skills-tracker';
 import AnalyticsDashboard from './_components/analytics-dashboard';
 import MentorPanel from './_components/mentor-panel';
 import VoiceLogger from './_components/voice-logger';
-import DailyReplay from './_components/daily-replay';
 import type { Quest, Skill } from '@/lib/types';
 import { BrainCircuit, Zap, HeartPulse, Gem } from 'lucide-react';
 import { analyticsData } from '@/lib/data';
@@ -98,8 +97,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <Header />
-      <main className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
-        <div className="lg:col-span-1 xl:col-span-1 flex flex-col gap-6">
+      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-1 flex flex-col gap-6">
           <ProfileCard 
             level={level}
             totalXp={totalXp}
@@ -109,7 +108,7 @@ export default function Home() {
           <SkillsTracker skills={skills} />
           <MentorPanel />
         </div>
-        <div className="lg:col-span-2 xl:col-span-2 flex flex-col gap-6">
+        <div className="lg:col-span-2 flex flex-col gap-6">
           <QuestBoard 
             quests={quests}
             onUpdateQuest={handleUpdateQuest}
@@ -117,10 +116,7 @@ export default function Home() {
             onDeleteQuest={handleDeleteQuest}
           />
           <AnalyticsDashboard analyticsData={localAnalyticsData} />
-        </div>
-        <div className="lg:col-span-3 xl:col-span-1 flex flex-col gap-6">
           <VoiceLogger />
-          <DailyReplay />
         </div>
       </main>
     </div>
