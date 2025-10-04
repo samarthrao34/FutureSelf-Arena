@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { logVoiceCommandAction } from '@/lib/actions';
 import { useVoiceRecorder } from '@/hooks/use-voice-recorder';
 import {
@@ -56,7 +56,7 @@ function VoiceButton({
 
 export default function VoiceLogger() {
   const { recordingStatus, audioDataUri, startRecording, stopRecording, resetRecording } = useVoiceRecorder();
-  const [state, formAction] = useFormState(logVoiceCommandAction, { data: undefined, error: undefined });
+  const [state, formAction] = useActionState(logVoiceCommandAction, { data: undefined, error: undefined });
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {

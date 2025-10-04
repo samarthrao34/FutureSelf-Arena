@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { getMentorAdviceAction } from '@/lib/actions';
 import {
   Card,
@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, User, Sparkles, Volume2 } from 'lucide-react';
+import { SparkleIcon } from '@/components/icons/sparkle-icon';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -38,7 +39,7 @@ function SubmitButton() {
 }
 
 export default function MentorPanel() {
-  const [state, formAction] = useFormState(getMentorAdviceAction, { data: undefined, error: undefined });
+  const [state, formAction] = useActionState(getMentorAdviceAction, { data: undefined, error: undefined });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {

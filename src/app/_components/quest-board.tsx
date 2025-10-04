@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { generateQuestsAction } from '@/lib/actions';
 import {
   Card,
@@ -28,7 +28,7 @@ function SubmitButton() {
 }
 
 export default function QuestBoard() {
-  const [state, formAction] = useFormState(generateQuestsAction, {
+  const [state, formAction] = useActionState(generateQuestsAction, {
     error: undefined,
     data: undefined,
   });

@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { getNarrationAction } from '@/lib/actions';
 import {
   Card,
@@ -31,7 +31,7 @@ function SubmitButton() {
 }
 
 export default function DailyReplay() {
-  const [state, formAction] = useFormState(getNarrationAction, { data: undefined, error: undefined });
+  const [state, formAction] = useActionState(getNarrationAction, { data: undefined, error: undefined });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
