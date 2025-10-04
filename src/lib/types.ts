@@ -12,4 +12,5 @@ export type Quest = {
   description: string;
   xp: number;
   type: 'daily' | 'legendary';
+  completed?: boolean;
 };

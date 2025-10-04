@@ -1,7 +1,5 @@
 'use client';
-import { useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
-import { generateQuestsAction } from '@/lib/actions';
+import { useState, useTransition } from 'react';
 import {
   Card,
   CardContent,
@@ -12,40 +10,34 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { initialQuests } from '@/lib/data';
 import type { Quest } from '@/lib/types';
-import { Loader2, Swords, Star } from 'lucide-react';
+import { Loader2, Swords, Star, Plus } from 'lucide-react';
 import { SparkleIcon } from '@/components/icons/sparkle-icon';
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      Generate Quests
-    </Button>
-  );
-}
+import { cn } from '@/lib/utils';
 
 export default function QuestBoard() {
-  const [state, formAction] = useActionState(generateQuestsAction, {
-    error: undefined,
-    data: undefined,
-  });
   const [quests, setQuests] = useState<Quest[]>(initialQuests);
+  const [newQuestTitle, setNewQuestTitle] = useState('');
 
-  useState(() => {
-    if (state.data) {
-      const newQuests: Quest[] = state.data.map((q: string, i: number) => ({
-        id: `gen-${i}`,
-        title: q,
-        description: 'AI generated quest',
-        xp: Math.floor(Math.random() * 100) + 50,
-        type: 'daily',
-      }));
-      setQuests(prev => [...newQuests, ...prev.filter(q => q.type === 'legendary')]);
-    }
-  });
+  const handleAddQuest = () => {
+    if (newQuestTitle.trim() === '') return;
+    const newQuest: Quest = {
+      id: `user-${Date.now()}`,
+      title: newQuestTitle,
+      description: 'User-added goal',
+      xp: 50,
+      type: 'daily',
+      completed: false,
+    };
+    setQuests(prev => [newQuest, ...prev]);
+    setNewQuestTitle('');
+  };
+  
+  const handleQuestCompletion = (questId: string, completed: boolean) => {
+    setQuests(quests.map(q => q.id === questId ? {...q, completed} : q))
+  }
 
   return (
     <Card>
@@ -55,51 +47,55 @@ export default function QuestBoard() {
           <CardTitle className="font-headline text-xl">Quest Board</CardTitle>
         </div>
         <CardDescription>
-          Generate daily quests from your goals or tackle legendary challenges.
+          Add your daily goals and complete legendary challenges.
         </CardDescription>
       </CardHeader>
-      <form action={formAction}>
-        <CardContent className="space-y-4">
-          <div className="space-y-1">
-            <label htmlFor="goals" className="text-sm font-medium">Your Goals for Today</label>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
             <Input
-              id="goals"
-              name="goals"
-              placeholder="e.g., Finish project proposal, learn Next.js server actions..."
+              id="new-quest"
+              name="new-quest"
+              placeholder="e.g., Finish project proposal..."
+              value={newQuestTitle}
+              onChange={(e) => setNewQuestTitle(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddQuest()}
             />
-            {typeof state.error === 'object' && state.error?.goals && (
-              <p className="text-sm text-destructive">{state.error.goals[0]}</p>
-            )}
-            {typeof state.error === 'string' && (
-              <p className="text-sm text-destructive">{state.error}</p>
-            )}
-          </div>
-          <div className="h-64 overflow-y-auto space-y-3 pr-2">
-            {quests.map((quest) => (
-              <div
-                key={quest.id}
-                className="flex items-start gap-4 p-3 rounded-lg border bg-card-foreground/5 hover:bg-card-foreground/10"
-              >
-                {quest.type === 'legendary' ? (
-                  <SparkleIcon icon={Star} className="w-5 h-5 mt-1 text-primary" />
-                ) : (
-                  <Swords className="w-5 h-5 mt-1 text-accent" />
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold">{quest.title}</p>
-                  <p className="text-sm text-muted-foreground">{quest.description}</p>
-                </div>
-                <div className="font-mono text-sm font-medium text-primary whitespace-nowrap">
-                  +{quest.xp} XP
-                </div>
+            <Button onClick={handleAddQuest}><Plus className='mr-2'/> Add Goal</Button>
+        </div>
+        <div className="h-64 overflow-y-auto space-y-3 pr-2">
+          {quests.map((quest) => (
+            <div
+              key={quest.id}
+              className={cn(
+                "flex items-start gap-4 p-3 rounded-lg border bg-card-foreground/5 transition-colors",
+                 quest.completed ? 'bg-card-foreground/10' : 'hover:bg-card-foreground/10'
+              )}
+            >
+              <Checkbox 
+                id={`quest-${quest.id}`}
+                className='mt-1'
+                checked={quest.completed}
+                onCheckedChange={(checked) => handleQuestCompletion(quest.id, !!checked)}
+              />
+              <div className="flex-1">
+                <label 
+                    htmlFor={`quest-${quest.id}`}
+                    className={cn(
+                        "font-semibold cursor-pointer",
+                        quest.completed && "line-through text-muted-foreground"
+                    )}
+                >
+                    {quest.title}
+                </label>
+                <p className="text-sm text-muted-foreground">{quest.description}</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-        <CardFooter>
-          <SubmitButton />
-        </CardFooter>
-      </form>
+              <div className="font-mono text-sm font-medium text-primary whitespace-nowrap">
+                +{quest.xp} XP
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
     </Card>
   );
 }
