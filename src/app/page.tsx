@@ -7,7 +7,6 @@ import QuestBoard from './_components/quest-board';
 import SkillsTracker from './_components/skills-tracker';
 import AnalyticsDashboard from './_components/analytics-dashboard';
 import MentorPanel from './_components/mentor-panel';
-import VoiceLogger from './_components/voice-logger';
 import type { Quest, Skill } from '@/lib/types';
 import { BrainCircuit, Zap, HeartPulse, Gem } from 'lucide-react';
 import { analyticsData } from '@/lib/data';
@@ -116,7 +115,6 @@ export default function Home() {
             onDeleteQuest={handleDeleteQuest}
           />
           <AnalyticsDashboard analyticsData={localAnalyticsData} />
-          <VoiceLogger />
         </div>
       </main>
     </div>

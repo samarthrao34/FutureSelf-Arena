@@ -2,7 +2,6 @@
 
 import { generateDailyQuests } from '@/ai/flows/dynamic-quest-generation';
 import { adaptiveAiMentor } from '@/ai/flows/adaptive-ai-mentor';
-import { logVoiceCommand } from '@/ai/flows/voice-activated-quest-logging';
 import { generateFutureSelfNarration } from '@/ai/flows/future-self-narration';
 import { z } from 'zod';
 
@@ -85,32 +84,5 @@ export async function getNarrationAction(prevState: any, formData: FormData) {
     } catch (e) {
         console.error(e);
         return { error: 'Failed to get narration. Is the API key configured?' };
-    }
-}
-
-
-const voiceLogSchema = z.object({
-    audio: z.string(),
-});
-
-export async function logVoiceCommandAction(prevState: any, formData: FormData) {
-    const validatedFields = voiceLogSchema.safeParse({
-        audio: formData.get('audio'),
-    });
-
-    if (!validatedFields.success || !validatedFields.data.audio) {
-        return {
-            error: 'No audio data received.',
-        };
-    }
-
-    try {
-        const output = await logVoiceCommand({
-            voiceDataUri: validatedFields.data.audio,
-        });
-        return { data: output };
-    } catch (e) {
-        console.error(e);
-        return { error: 'Failed to process voice command. Is the API key configured?' };
     }
 }
