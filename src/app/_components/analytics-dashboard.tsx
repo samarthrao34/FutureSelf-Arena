@@ -13,8 +13,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { analyticsData } from '@/lib/data';
-import { Bar, BarChart, CartesianGrid, Line, LineChart, PolarAngleAxis, PolarGrid, Radar, RadarChart, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PolarRadiusAxis } from 'recharts';
+import { Line, LineChart, PolarAngleAxis, PolarGrid, Radar, RadarChart, XAxis, CartesianGrid } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
 const chartConfig: ChartConfig = {
@@ -36,7 +35,15 @@ const chartConfig: ChartConfig = {
   }
 };
 
-export default function AnalyticsDashboard() {
+type AnalyticsDashboardProps = {
+    analyticsData: {
+        xpOverTime: { date: string, XP: number }[];
+        lifeMonitor: { stat: string, value: number, fullMark: number }[];
+        failureSuccess: { name: string, value: number, fill: string }[];
+    }
+}
+
+export default function AnalyticsDashboard({ analyticsData }: AnalyticsDashboardProps) {
   return (
     <Card>
       <CardHeader>

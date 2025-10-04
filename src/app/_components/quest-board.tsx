@@ -1,24 +1,28 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { initialQuests } from '@/lib/data';
 import type { Quest } from '@/lib/types';
-import { Loader2, Swords, Star, Plus } from 'lucide-react';
+import { Swords, Plus, Trash2 } from 'lucide-react';
 import { SparkleIcon } from '@/components/icons/sparkle-icon';
 import { cn } from '@/lib/utils';
 
-export default function QuestBoard() {
-  const [quests, setQuests] = useState<Quest[]>(initialQuests);
+type QuestBoardProps = {
+    quests: Quest[];
+    onUpdateQuest: (quest: Quest) => void;
+    onAddQuest: (quest: Quest) => void;
+    onDeleteQuest: (questId: string) => void;
+}
+
+export default function QuestBoard({ quests, onUpdateQuest, onAddQuest, onDeleteQuest }: QuestBoardProps) {
   const [newQuestTitle, setNewQuestTitle] = useState('');
 
   const handleAddQuest = () => {
@@ -27,16 +31,16 @@ export default function QuestBoard() {
       id: `user-${Date.now()}`,
       title: newQuestTitle,
       description: 'User-added goal',
-      xp: 50,
+      xp: 50, // Default XP for a user-added goal
       type: 'daily',
       completed: false,
     };
-    setQuests(prev => [newQuest, ...prev]);
+    onAddQuest(newQuest);
     setNewQuestTitle('');
   };
   
-  const handleQuestCompletion = (questId: string, completed: boolean) => {
-    setQuests(quests.map(q => q.id === questId ? {...q, completed} : q))
+  const handleQuestCompletion = (quest: Quest, completed: boolean) => {
+    onUpdateQuest({ ...quest, completed });
   }
 
   return (
@@ -67,7 +71,7 @@ export default function QuestBoard() {
             <div
               key={quest.id}
               className={cn(
-                "flex items-start gap-4 p-3 rounded-lg border bg-card-foreground/5 transition-colors",
+                "group flex items-start gap-4 p-3 rounded-lg border bg-card-foreground/5 transition-colors",
                  quest.completed ? 'bg-card-foreground/10' : 'hover:bg-card-foreground/10'
               )}
             >
@@ -75,7 +79,7 @@ export default function QuestBoard() {
                 id={`quest-${quest.id}`}
                 className='mt-1'
                 checked={quest.completed}
-                onCheckedChange={(checked) => handleQuestCompletion(quest.id, !!checked)}
+                onCheckedChange={(checked) => handleQuestCompletion(quest, !!checked)}
               />
               <div className="flex-1">
                 <label 
@@ -92,6 +96,14 @@ export default function QuestBoard() {
               <div className="font-mono text-sm font-medium text-primary whitespace-nowrap">
                 +{quest.xp} XP
               </div>
+               <Button 
+                variant="ghost" 
+                size="icon" 
+                className="w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => onDeleteQuest(quest.id)}
+              >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+              </Button>
             </div>
           ))}
         </div>

@@ -5,16 +5,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { initialSkills } from "@/lib/data";
+import type { Skill } from "@/lib/types";
 
-export default function SkillsTracker() {
+type SkillsTrackerProps = {
+    skills: Skill[];
+}
+
+export default function SkillsTracker({ skills }: SkillsTrackerProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-headline text-xl">Skill Tree</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {initialSkills.map((skill) => {
+        {skills.map((skill) => {
           const progress = (skill.xp / skill.xpToNextLevel) * 100;
           return (
             <div key={skill.name} className="space-y-2">

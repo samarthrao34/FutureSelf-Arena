@@ -10,11 +10,17 @@ import { Progress } from "@/components/ui/progress";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Badge } from "@/components/ui/badge";
 
-export default function ProfileCard() {
+type ProfileCardProps = {
+    level: number;
+    totalXp: number;
+    currentLevelXP: number;
+    xpToNextLevel: number;
+}
+
+export default function ProfileCard({ level, totalXp, currentLevelXP, xpToNextLevel }: ProfileCardProps) {
   const userAvatar = PlaceHolderImages.find((img) => img.id === "user-avatar");
-  const currentLevelXP = 0;
-  const xpToNextLevel = 1000;
   const progress = (currentLevelXP / xpToNextLevel) * 100;
+  const nextLevel = level + 1;
 
   return (
     <Card className="overflow-hidden">
@@ -31,7 +37,7 @@ export default function ProfileCard() {
         )}
         <div>
           <CardTitle className="font-headline text-2xl">Samarth Rao</CardTitle>
-          <CardDescription>Level 1 - Novice</CardDescription>
+          <CardDescription>Level {level} - Novice</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-2">
@@ -39,13 +45,13 @@ export default function ProfileCard() {
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Total XP</span>
             <Badge variant="secondary" className="font-mono">
-              0 XP
+              {totalXp} XP
             </Badge>
           </div>
           <div className="space-y-1">
             <Progress value={progress} className="h-3" />
             <p className="text-xs text-muted-foreground text-right font-mono">
-              {currentLevelXP} / {xpToNextLevel} XP to Level 2
+              {currentLevelXP} / {xpToNextLevel} XP to Level {nextLevel}
             </p>
           </div>
         </div>
