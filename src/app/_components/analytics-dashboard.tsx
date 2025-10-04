@@ -13,8 +13,8 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { Line, LineChart, XAxis, CartesianGrid } from 'recharts';
-import { TrendingUp } from 'lucide-react';
+import { CartesianGrid, Line, LineChart, XAxis, PolarGrid, PolarAngleAxis, Radar, RadarChart } from 'recharts';
+import { TrendingUp, Target } from 'lucide-react';
 
 const chartConfig: ChartConfig = {
   xp: {
@@ -38,6 +38,7 @@ const chartConfig: ChartConfig = {
 type AnalyticsDashboardProps = {
     analyticsData: {
         xpOverTime: { date: string, XP: number }[];
+        lifeMonitor: { stat: string; value: number; fullMark: number }[];
     }
 }
 
@@ -53,7 +54,7 @@ export default function AnalyticsDashboard({ analyticsData }: AnalyticsDashboard
           Your progress, visualized. Track your journey to the top 1%.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-6">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
             <h3 className="font-semibold text-sm">XP Over Time</h3>
             <ChartContainer config={chartConfig} className="h-[250px] w-full">
@@ -72,6 +73,25 @@ export default function AnalyticsDashboard({ analyticsData }: AnalyticsDashboard
                   dot={true}
                 />
               </LineChart>
+            </ChartContainer>
+        </div>
+        <div className="space-y-2">
+            <h3 className="font-semibold text-sm flex items-center gap-2"><Target className="w-4 h-4"/> Life Monitor</h3>
+             <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                <RadarChart data={analyticsData.lifeMonitor}>
+                <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="line" />}
+                />
+                <PolarGrid />
+                <PolarAngleAxis dataKey="stat" tick={{ fontSize: 12 }} />
+                <Radar
+                    dataKey="value"
+                    fill="hsl(var(--primary))"
+                    fillOpacity={0.6}
+                    stroke="hsl(var(--primary))"
+                />
+                </RadarChart>
             </ChartContainer>
         </div>
       </CardContent>
