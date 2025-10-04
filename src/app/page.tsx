@@ -101,7 +101,7 @@ export default function Home() {
         return {
         ...prev,
         xpOverTime: newXpOverTime,
-        lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: (s.xp / s.xpToNextLevel) * 100, fullMark: 100})),
+        lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: Math.round((s.xp / s.xpToNextLevel) * 100), fullMark: 100})),
       }});
 
     } else if (!updatedQuest.completed && oldQuest.completed) {
@@ -132,7 +132,7 @@ export default function Home() {
             return {
                 ...prev,
                 xpOverTime: newXpOverTime,
-                lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: (s.xp / s.xpToNextLevel) * 100, fullMark: 100})),
+                lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: Math.round((s.xp / s.xpToNextLevel) * 100), fullMark: 100})),
             }
         });
     }
@@ -143,15 +143,52 @@ export default function Home() {
   }
   
   const handleDeleteQuest = (questId: string) => {
+      const questToDelete = quests.find(q => q.id === questId);
+      if (questToDelete?.completed) {
+        // If the deleted quest was completed, subtract its XP
+        const newTotalXp = totalXp - questToDelete.xp;
+        setTotalXp(newTotalXp < 0 ? 0 : newTotalXp);
+
+        const xpPerSkill = questToDelete.xp / skills.length;
+        const updatedSkills = skills.map(skill => {
+            let newSkillXp = skill.xp - xpPerSkill;
+            // Basic level down, more complex logic might be needed for real app
+            let newSkillLevel = skill.level;
+            let newXpToNextLevel = skill.xpToNextLevel;
+            if (newSkillXp < 0) {
+              if (newSkillLevel > 1) {
+                newSkillLevel--;
+                newXpToNextLevel = Math.ceil(newXpToNextLevel / 1.5);
+                newSkillXp += newXpToNextLevel;
+              } else {
+                newSkillXp = 0;
+              }
+            }
+            return { ...skill, xp: Math.round(newSkillXp), level: newSkillLevel, xpToNextLevel: newXpToNextLevel };
+        });
+        setSkills(updatedSkills);
+        setLocalAnalyticsData(prev => ({
+            ...prev,
+            lifeMonitor: updatedSkills.map(s => ({stat: s.name, value: Math.round((s.xp / s.xpToNextLevel) * 100), fullMark: 100})),
+        }));
+      }
       setQuests(quests.filter(q => q.id !== questId));
   }
 
   const level = Math.floor(totalXp / 1000) + 1;
-  const currentLevelXP = totalXp % 1000;
-  const xpToNextLevel = 1000;
+  const xpForCurrentLevel = totalXp - ((level -1) * 1000);
+  const xpToNextLevel = Math.floor(1000 * (Math.pow(1.5, level -1)));
+
 
   if (!isLoaded) {
-    return null; // or a loading spinner
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+          <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-lg text-muted-foreground">Loading Your Arena...</p>
+          </div>
+      </div>
+    );
   }
 
   return (
@@ -162,7 +199,7 @@ export default function Home() {
           <ProfileCard 
             level={level}
             totalXp={totalXp}
-            currentLevelXP={currentLevelXP}
+            currentLevelXP={xpForCurrentLevel}
             xpToNextLevel={xpToNextLevel}
           />
           <SkillsTracker skills={skills} />
