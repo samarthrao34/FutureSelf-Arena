@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function ProfileCard() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === "user-avatar");
-  const currentLevelXP = 450;
+  const currentLevelXP = 0;
   const xpToNextLevel = 1000;
   const progress = (currentLevelXP / xpToNextLevel) * 100;
 
@@ -31,7 +31,7 @@ export default function ProfileCard() {
         )}
         <div>
           <CardTitle className="font-headline text-2xl">Samarth Rao</CardTitle>
-          <CardDescription>Level 23 - Ascendant</CardDescription>
+          <CardDescription>Level 1 - Novice</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-2">
@@ -39,13 +39,13 @@ export default function ProfileCard() {
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">Total XP</span>
             <Badge variant="secondary" className="font-mono">
-              23,450 XP
+              0 XP
             </Badge>
           </div>
           <div className="space-y-1">
             <Progress value={progress} className="h-3" />
             <p className="text-xs text-muted-foreground text-right font-mono">
-              {currentLevelXP} / {xpToNextLevel} XP to Level 24
+              {currentLevelXP} / {xpToNextLevel} XP to Level 2
             </p>
           </div>
         </div>
