@@ -58,7 +58,7 @@ const aiTherapistFlow = ai.defineFlow(
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Alloy' },
+            prebuiltVoiceConfig: { voiceName: 'Nova' },
           },
         },
       },
