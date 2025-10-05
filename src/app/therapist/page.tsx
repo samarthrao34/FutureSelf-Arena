@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useActionState } from 'react';
+import { useState, useEffect, useRef, useActionState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mic, MicOff, Volume2, ArrowLeft } from 'lucide-react';
 import { getTherapistResponseAction } from '@/lib/actions';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Waveform from './_components/waveform';
 
 // SpeechRecognition might not be available in all browsers, or on the server.
 const SpeechRecognition =
@@ -21,8 +22,10 @@ type Message = {
 
 export default function TherapistPage() {
   const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [conversation, setConversation] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
   const [state, formAction, isPending] = useActionState(getTherapistResponseAction, {data: undefined, error: undefined});
 
   const recognitionRef = useRef<any>(null);
@@ -40,7 +43,7 @@ export default function TherapistPage() {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    recognition.onresult = async (event) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       
       setConversation(prev => [...prev, { id: Date.now(), speaker: 'user', text: transcript }]);
@@ -65,13 +68,12 @@ export default function TherapistPage() {
   }, [formAction]);
 
   useEffect(() => {
-    if (state.data) {
+    if (state?.data) {
         setConversation(prev => [...prev, { id: Date.now() + 1, speaker: 'ai', text: state.data.response, audio: state.data.audio }]);
-        if (audioRef.current && state.data.audio) {
-            audioRef.current.src = state.data.audio;
-            audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+        if (state.data.audio) {
+            playAudio(state.data.audio);
         }
-    } else if (state.error) {
+    } else if (state?.error) {
         setError(state.error);
     }
   }, [state]);
@@ -100,17 +102,44 @@ export default function TherapistPage() {
       }
   }
 
+  useEffect(() => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      const onPlay = () => setIsSpeaking(true);
+      const onEnded = () => setIsSpeaking(false);
+
+      audio.addEventListener('play', onPlay);
+      audio.addEventListener('ended', onEnded);
+      audio.addEventListener('pause', onEnded);
+
+      return () => {
+          audio.removeEventListener('play', onPlay);
+          audio.removeEventListener('ended', onEnded);
+          audio.removeEventListener('pause', onEnded);
+      }
+  }, []);
+
+  const getWaveformState = () => {
+      if (isPending) return 'thinking';
+      if (isRecording) return 'user';
+      if (isSpeaking) return 'ai';
+      return 'idle';
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 flex flex-col">
-      <header className="mb-6">
-        <Link href="/" className="flex items-center gap-2 text-primary hover:underline">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Arena
-        </Link>
+      <header className="mb-4">
+        <Button asChild variant="ghost">
+            <Link href="/" className="flex items-center gap-2 text-primary hover:underline">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Arena
+            </Link>
+        </Button>
       </header>
-      <main className="flex-1 flex flex-col items-center">
-        <Card className="w-full max-w-2xl flex-1 flex flex-col">
-          <CardHeader>
+      <main className="flex-1 flex flex-col items-center justify-center">
+        <Card className="w-full max-w-2xl h-[80vh] flex-1 flex flex-col">
+          <CardHeader className="flex-shrink-0">
             <CardTitle className="font-headline text-2xl flex items-center gap-3">
               AI Therapist
             </CardTitle>
@@ -136,24 +165,25 @@ export default function TherapistPage() {
               <div ref={conversationEndRef} />
             </div>
 
-            <div className="mt-auto pt-4 border-t">
+            <div className="mt-auto pt-4 border-t flex flex-col items-center justify-center gap-4">
+                <Waveform state={getWaveformState()} />
               {error && <p className="text-sm text-center text-destructive mb-2">{error}</p>}
-              <div className="flex flex-col items-center gap-4">
-                  <p className="text-sm text-muted-foreground">
-                    {isRecording ? 'Listening...' : (isPending ? 'Thinking...' : 'Press the button and speak')}
-                  </p>
+              <div className="flex flex-col items-center gap-2">
                   <Button
                     onClick={toggleRecording}
-                    disabled={isPending}
+                    disabled={isPending || isSpeaking}
                     size="icon"
                     className={cn(
                       "rounded-full w-16 h-16 transition-all duration-300",
                       isRecording ? 'bg-destructive hover:bg-destructive/90 scale-110' : 'bg-primary hover:bg-primary/90',
-                      isPending && 'animate-pulse'
+                      (isPending || isSpeaking) && 'animate-pulse bg-muted-foreground'
                     )}
                   >
                     {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (isRecording ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />)}
                   </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {isRecording ? 'Listening...' : (isPending ? 'Thinking...' : (isSpeaking ? 'Responding...': 'Press the button to speak'))}
+                  </p>
               </div>
             </div>
           </CardContent>
