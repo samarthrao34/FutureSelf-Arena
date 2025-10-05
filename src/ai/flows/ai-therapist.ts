@@ -11,7 +11,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import wav from 'wav';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const AiTherapistInputSchema = z.string().describe('The user\'s spoken input to the therapist.');
 export type AiTherapistInput = z.infer<typeof AiTherapistInputSchema>;
@@ -53,7 +52,7 @@ const aiTherapistFlow = ai.defineFlow(
     }
     
     const ttsOutput = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
+      model: 'googleai/gemini-2.5-flash-preview-tts',
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
