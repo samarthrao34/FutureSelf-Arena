@@ -3,6 +3,7 @@
 import { generateDailyQuests } from '@/ai/flows/dynamic-quest-generation';
 import { adaptiveAiMentor } from '@/ai/flows/adaptive-ai-mentor';
 import { generateFutureSelfNarration } from '@/ai/flows/future-self-narration';
+import { aiTherapist } from '@/ai/flows/ai-therapist';
 import { z } from 'zod';
 
 const questSchema = z.object({
@@ -64,28 +65,16 @@ export async function getMentorAdviceAction(prevState: any, formData: FormData) 
     }
 }
 
-const narrationSchema = z.object({
-    log: z.string().min(10, 'Daily log must be at least 10 characters long.'),
-});
-
-export async function getNarrationAction(prevState: any, formData: FormData) {
-    const validatedFields = narrationSchema.safeParse({
-        log: formData.get('log'),
-    });
-
-    if (!validatedFields.success) {
-        return {
-            error: 'Invalid input.',
-        };
+export async function getTherapistResponseAction(prevState: any, transcript: string) {
+    if (!transcript || transcript.length < 2) {
+        return { error: 'Input is too short.'};
     }
-
+    
     try {
-        const output = await generateFutureSelfNarration({
-            dailyLog: validatedFields.data.log,
-        });
+        const output = await aiTherapist(transcript);
         return { data: output };
     } catch (e) {
         console.error(e);
-        return { error: 'Failed to get narration. Is the API key configured?' };
+        return { error: 'Failed to get response from therapist AI. Is the API key configured?' };
     }
 }

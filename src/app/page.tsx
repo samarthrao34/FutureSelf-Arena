@@ -8,21 +8,17 @@ import SkillsTracker from './_components/skills-tracker';
 import AnalyticsDashboard from './_components/analytics-dashboard';
 import MentorPanel from './_components/mentor-panel';
 import type { Quest, Skill } from '@/lib/types';
-import { BrainCircuit, Zap, HeartPulse, Gem } from 'lucide-react';
-import { analyticsData } from '@/lib/data';
-
-const initialSkillsData: Skill[] = [
-  { name: 'Knowledge', level: 1, xp: 0, xpToNextLevel: 1000, icon: BrainCircuit },
-  { name: 'Mindset', level: 1, xp: 0, xpToNextLevel: 1000, icon: Zap },
-  { name: 'Health', level: 1, xp: 0, xpToNextLevel: 1000, icon: HeartPulse },
-  { name: 'Creativity', level: 1, xp: 0, xpToNextLevel: 1000, icon: Gem },
-];
+import { initialSkills } from '@/lib/data';
+import { analyticsData as initialAnalyticsData } from '@/lib/data';
+import { Button } from '@/components/ui/button';
+import { Heart } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   const [totalXp, setTotalXp] = useState(0);
-  const [skills, setSkills] = useState<Skill[]>(initialSkillsData);
+  const [skills, setSkills] = useState<Skill[]>(initialSkills);
   const [quests, setQuests] = useState<Quest[]>([]);
-  const [localAnalyticsData, setLocalAnalyticsData] = useState(analyticsData);
+  const [localAnalyticsData, setLocalAnalyticsData] = useState(initialAnalyticsData);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -64,12 +60,10 @@ export default function Home() {
     newQuests[questIndex] = updatedQuest;
     setQuests(newQuests);
 
-    // If quest is newly completed, add XP
     if (updatedQuest.completed && !oldQuest.completed) {
       const newTotalXp = totalXp + updatedQuest.xp;
       setTotalXp(newTotalXp);
 
-      // Distribute XP among skills
       const xpPerSkill = updatedQuest.xp / skills.length;
       const updatedSkills = skills.map(skill => {
         let newSkillXp = skill.xp + xpPerSkill;
@@ -86,7 +80,6 @@ export default function Home() {
       });
       setSkills(updatedSkills);
       
-      // Update analytics
       setLocalAnalyticsData(prev => {
         const today = new Date().toLocaleDateString();
         const existingEntryIndex = prev.xpOverTime.findIndex(e => e.date === today);
@@ -105,11 +98,9 @@ export default function Home() {
       }});
 
     } else if (!updatedQuest.completed && oldQuest.completed) {
-        // If quest is un-completed, remove XP
         const newTotalXp = totalXp - updatedQuest.xp;
         setTotalXp(newTotalXp < 0 ? 0 : newTotalXp);
         
-        // This is a simplified version, for a real app you might need a more complex logic to revert skill levels
         const xpPerSkill = updatedQuest.xp / skills.length;
         const updatedSkills = skills.map(skill => {
             const newSkillXp = skill.xp - xpPerSkill;
@@ -117,7 +108,6 @@ export default function Home() {
         })
         setSkills(updatedSkills);
 
-        // Update analytics
         setLocalAnalyticsData(prev => {
             const today = new Date().toLocaleDateString();
             const existingEntryIndex = prev.xpOverTime.findIndex(e => e.date === today);
@@ -145,14 +135,12 @@ export default function Home() {
   const handleDeleteQuest = (questId: string) => {
       const questToDelete = quests.find(q => q.id === questId);
       if (questToDelete?.completed) {
-        // If the deleted quest was completed, subtract its XP
         const newTotalXp = totalXp - questToDelete.xp;
         setTotalXp(newTotalXp < 0 ? 0 : newTotalXp);
 
         const xpPerSkill = questToDelete.xp / skills.length;
         const updatedSkills = skills.map(skill => {
             let newSkillXp = skill.xp - xpPerSkill;
-            // Basic level down, more complex logic might be needed for real app
             let newSkillLevel = skill.level;
             let newXpToNextLevel = skill.xpToNextLevel;
             if (newSkillXp < 0) {
@@ -176,7 +164,8 @@ export default function Home() {
   }
 
   const level = Math.floor(totalXp / 1000) + 1;
-  const xpForCurrentLevel = totalXp - ((level -1) * 1000);
+  const xpForCurrentLevelTotal = (level - 1) * 1000;
+  const xpInCurrentLevel = totalXp - xpForCurrentLevelTotal;
   const xpToNextLevel = Math.floor(1000 * (Math.pow(1.5, level -1)));
 
 
@@ -211,10 +200,20 @@ export default function Home() {
           <ProfileCard 
             level={level}
             totalXp={totalXp}
-            currentLevelXP={xpForCurrentLevel}
+            currentLevelXP={xpInCurrentLevel}
             xpToNextLevel={xpToNextLevel}
           />
           <SkillsTracker skills={skills} />
+          <Card>
+            <CardContent className="p-4">
+                <Link href="/therapist">
+                    <Button variant="outline" className="w-full">
+                        <Heart className="mr-2" />
+                        AI Therapist
+                    </Button>
+                </Link>
+            </CardContent>
+          </Card>
         </div>
         <div className="lg:col-span-2 flex flex-col gap-6">
           <QuestBoard 

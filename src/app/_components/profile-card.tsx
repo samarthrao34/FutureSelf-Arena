@@ -24,7 +24,7 @@ export default function ProfileCard({ level, totalXp, currentLevelXP, xpToNextLe
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center gap-4 bg-card/50">
+      <CardHeader className="flex flex-row items-center gap-4 bg-card/50 p-4">
         {userAvatar && (
           <Image
             src={userAvatar.imageUrl}
@@ -36,7 +36,7 @@ export default function ProfileCard({ level, totalXp, currentLevelXP, xpToNextLe
           />
         )}
         <div>
-          <CardTitle className="font-headline text-2xl">Samarth Rao</CardTitle>
+          <CardTitle className="font-headline text-xl">Samarth Rao</CardTitle>
           <CardDescription>Level {level} - Novice</CardDescription>
         </div>
       </CardHeader>
