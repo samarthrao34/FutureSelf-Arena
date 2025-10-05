@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useActionState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mic, MicOff, Volume2, ArrowLeft } from 'lucide-react';
@@ -13,6 +13,7 @@ const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
 
 type Message = {
+  id: number;
   speaker: 'user' | 'ai';
   text: string;
   audio?: string;
@@ -20,9 +21,9 @@ type Message = {
 
 export default function TherapistPage() {
   const [isRecording, setIsRecording] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [conversation, setConversation] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [state, formAction, isPending] = useActionState(getTherapistResponseAction, {data: undefined, error: undefined});
 
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -41,30 +42,19 @@ export default function TherapistPage() {
 
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
-      setIsLoading(true);
       
-      // Add user message to conversation
-      setConversation(prev => [...prev, { speaker: 'user', text: transcript }]);
+      setConversation(prev => [...prev, { id: Date.now(), speaker: 'user', text: transcript }]);
 
-      const result = await getTherapistResponseAction(null, transcript);
+      const formData = new FormData();
+      formData.append('transcript', transcript);
+      formAction(formData);
 
-      if (result.data) {
-        setConversation(prev => [...prev, { speaker: 'ai', text: result.data.response, audio: result.data.audio }]);
-        if (audioRef.current && result.data.audio) {
-            audioRef.current.src = result.data.audio;
-            audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
-        }
-      } else if (result.error) {
-        setError(result.error);
-      }
-      setIsLoading(false);
       setIsRecording(false);
     };
 
     recognition.onerror = (event) => {
       setError(`Speech recognition error: ${event.error}`);
       setIsRecording(false);
-      setIsLoading(false);
     };
     
     recognition.onend = () => {
@@ -72,7 +62,20 @@ export default function TherapistPage() {
     }
 
     recognitionRef.current = recognition;
-  }, []);
+  }, [formAction]);
+
+  useEffect(() => {
+    if (state.data) {
+        setConversation(prev => [...prev, { id: Date.now() + 1, speaker: 'ai', text: state.data.response, audio: state.data.audio }]);
+        if (audioRef.current && state.data.audio) {
+            audioRef.current.src = state.data.audio;
+            audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+        }
+    } else if (state.error) {
+        setError(state.error);
+    }
+  }, [state]);
+
 
   useEffect(() => {
     conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,7 +86,6 @@ export default function TherapistPage() {
 
     if (isRecording) {
       recognitionRef.current.stop();
-      setIsRecording(false);
     } else {
       recognitionRef.current.start();
       setIsRecording(true);
@@ -115,8 +117,8 @@ export default function TherapistPage() {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
             <div className="flex-1 overflow-y-auto pr-4 space-y-4">
-              {conversation.map((msg, index) => (
-                <div key={index} className={cn("flex items-start gap-3", msg.speaker === 'user' ? 'justify-end' : 'justify-start')}>
+              {conversation.map((msg) => (
+                <div key={msg.id} className={cn("flex items-start gap-3", msg.speaker === 'user' ? 'justify-end' : 'justify-start')}>
                   <div className={cn(
                       "p-3 rounded-lg max-w-md", 
                       msg.speaker === 'user' ? 'bg-primary/20 text-right' : 'bg-muted'
@@ -138,19 +140,19 @@ export default function TherapistPage() {
               {error && <p className="text-sm text-center text-destructive mb-2">{error}</p>}
               <div className="flex flex-col items-center gap-4">
                   <p className="text-sm text-muted-foreground">
-                    {isRecording ? 'Listening...' : (isLoading ? 'Thinking...' : 'Press the button and speak')}
+                    {isRecording ? 'Listening...' : (isPending ? 'Thinking...' : 'Press the button and speak')}
                   </p>
                   <Button
                     onClick={toggleRecording}
-                    disabled={isLoading}
+                    disabled={isPending}
                     size="icon"
                     className={cn(
                       "rounded-full w-16 h-16 transition-all duration-300",
                       isRecording ? 'bg-destructive hover:bg-destructive/90 scale-110' : 'bg-primary hover:bg-primary/90',
-                      isLoading && 'animate-pulse'
+                      isPending && 'animate-pulse'
                     )}
                   >
-                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isRecording ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />)}
+                    {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (isRecording ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />)}
                   </Button>
               </div>
             </div>

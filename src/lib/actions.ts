@@ -65,13 +65,23 @@ export async function getMentorAdviceAction(prevState: any, formData: FormData) 
     }
 }
 
-export async function getTherapistResponseAction(prevState: any, transcript: string) {
-    if (!transcript || transcript.length < 2) {
-        return { error: 'Input is too short.'};
+const therapistSchema = z.object({
+    transcript: z.string().min(2, 'Input is too short.'),
+});
+
+export async function getTherapistResponseAction(prevState: any, formData: FormData) {
+    const validatedFields = therapistSchema.safeParse({
+        transcript: formData.get('transcript'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            error: validatedFields.error.flatten().fieldErrors.transcript?.join(', ') || 'Invalid input.',
+        };
     }
     
     try {
-        const output = await aiTherapist(transcript);
+        const output = await aiTherapist(validatedFields.data.transcript);
         return { data: output };
     } catch (e) {
         console.error(e);
