@@ -215,7 +215,6 @@ export default function Home() {
             xpToNextLevel={xpToNextLevel}
           />
           <SkillsTracker skills={skills} />
-          <MentorPanel userContext={userContext} />
         </div>
         <div className="lg:col-span-2 flex flex-col gap-6">
           <QuestBoard 
@@ -224,6 +223,7 @@ export default function Home() {
             onAddQuest={handleAddQuest}
             onDeleteQuest={handleDeleteQuest}
           />
+          <MentorPanel userContext={userContext} />
           <AnalyticsDashboard analyticsData={localAnalyticsData} />
         </div>
       </main>
