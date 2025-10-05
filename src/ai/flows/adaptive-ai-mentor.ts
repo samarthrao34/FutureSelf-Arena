@@ -13,6 +13,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import wav from 'wav';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const AdaptiveAiMentorInputSchema = z.object({
   currentUserStatus: z
@@ -68,7 +69,7 @@ const adaptiveAiMentorFlow = ai.defineFlow(
 
     // Convert advice text to speech
     const ttsOutput = await ai.generate({
-      model: 'gemini-2.5-flash-preview-tts',
+      model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {

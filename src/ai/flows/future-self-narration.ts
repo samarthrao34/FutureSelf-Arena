@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import wav from 'wav';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const FutureSelfNarrationInputSchema = z.object({
   dailyLog: z.string().describe('A summary of the user\'s daily activities and accomplishments.'),
@@ -52,7 +53,7 @@ const futureSelfNarrationFlow = ai.defineFlow(
     }
 
     const {media} = await ai.generate({
-      model: 'gemini-2.5-flash-preview-tts',
+      model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
