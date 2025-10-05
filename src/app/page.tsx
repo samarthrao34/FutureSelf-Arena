@@ -13,6 +13,7 @@ import { analyticsData as initialAnalyticsData } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
   const [totalXp, setTotalXp] = useState(0);
